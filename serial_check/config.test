@@ -1,0 +1,12 @@
+{
+    "boards":[
+        {
+        "serial_device" : "/dev/ttyACM2",
+        "baudrate" : 460800,
+        "tests" : [
+            {"type":"error_if_string", "values":["Assert","exception"]},
+            {"type":"error_if_not_string", "values":["twr"]},
+            ]
+        }
+    ]
+}
