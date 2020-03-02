@@ -17,30 +17,47 @@
 # specific language governing permissions and limitations
 # under the License.
 
-rc=0
-case $TEST in
-  "TEST_ALL")
-     $HOME/ci/test_all.sh
-     rc=$?
-     ;;
-  "TEST_EUCLID")
-    $HOME/ci/test_euclid.sh
-    rc=$?
-    ;;
-  "BUILD_TARGETS")
-     $HOME/ci/test_build_targets.sh
-     rc=$?
-     ;;
-  "BUILD_BLINKY")
-     $HOME/ci/test_build_blinky.sh
-     rc=$?
-     ;;
-  "BUILD_PORTS")
-     $HOME/ci/build_ports.sh
-     rc=$?
-     ;;
-  *) exit 1
-     ;;
-esac
+EXIT_CODE=0
 
-exit $rc
+blacklist = {}
+
+is_blacklisted() {
+    local sought="$1"
+    local elem
+    shift
+
+    for elem in "${blacklist[@]}"
+    do
+        if [ "$elem" = "$sought" ]
+        then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+TARGETS=$(cat ${TRAVIS_BUILD_DIR/targets.txt)
+for unittet in ${TARGETS}; do
+    if [ ${TRAVIS_OS_NAME} = "linux" ]; then
+        if is_blacklisted "$unittest"
+        then
+            echo "Ignoring $unittest"
+            continue
+        fi
+    fi
+
+    echo "Testing unittest=$unittest"
+
+
+    if [[ $NEWT_TEST_DEBUG == *"{unitest}"* ]]; then
+        newt test -ldebug -v $unittest
+    else
+        newt test -q $unittest
+    fi
+
+    rc=$?
+    [[ $rc -ne 0 ]] && EXIT_CODE=$rc
+done
+
+exit $EXIT_CODE
